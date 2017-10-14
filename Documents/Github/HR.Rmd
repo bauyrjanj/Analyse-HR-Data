@@ -1,13 +1,13 @@
 ---
 title: "Human Resources Analytics"
 author: "Bauyrjan"
-date: "10/8/2017"
+date: "10/13/2017"
 output: html_document
 ---
 
-# Intro
+# Introduction
 
-Motivation: Why are our best and most experienced employees leaving the compnay prematurely? 
+Motivation: Why are our best and most experienced employees leaving the company prematurely? 
 
 We will use the following dataset from Kaggle database and will try to predict which valuable employees will leave the company next.
 
@@ -16,20 +16,16 @@ This dataset is simulated dataset and is downloaded from Kaggle website.
 Fields in the dataset include:
 
 
-* Satisfaction Level (sl)
-* Last evaluation (le)
-* Number of projects (nop)
-* Average monthly hours (amh)
-* Time spent at the company (tsac)
-* Whether they have had a work accident (wa)
-* Whether they have had a promotion in the last 5 years (promo)
-* Departments (sales)
-* Salary (salary)
-* Whether the employee has left (left)
-
-Ensure your working directory is set to the directory where the data resides.
-
-# Load libraries
+* Satisfaction Level
+* Last evaluation 
+* Number of projects
+* Average monthly hours
+* Time spent at the company
+* Whether they have had a work accident
+* Whether they have had a promotion in the last 5 years
+* Departments
+* Salary
+* Whether the employee has left ("0" denotes stayed employees, "1" denotes employees who left)
 
 ```{r, echo=FALSE}
 suppressMessages(library(plyr))
@@ -66,59 +62,44 @@ table(hr$left)
 ```{r, echo=FALSE}
 job_type<-data.frame(table(hr$sales))
 colnames(job_type)<-c("Job", "Freq")
-ggplot(data = job_type, aes(x=Freq, y=Job))+geom_point()
+ggplot(data = job_type, aes(x=Job, y=Freq))+geom_point()
 ```
 
 4. Let's see relationship between satisfaction level, jobs, and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=sales, y=satisfaction_level, color=as.factor(left)))+geom_point()
+ggplot(data = hr, aes(x=sales, y=satisfaction_level, color=as.factor(left)))+geom_point()+ggtitle("Satisfaction Level and Job Types")+labs(y="Satisfaction Level", x="Job Types", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
 5. Let's see relationship between satisfaction level, jobs, and salary
 ```{r}
-ggplot(data = hr, aes(x=sales, y=satisfaction_level, color=salary))+geom_point()
+ggplot(data = hr, aes(x=sales, y=satisfaction_level))+geom_boxplot()+ggtitle("Satisfaction Level and Job Types")+labs(y="Satisfaction Level", x="Job Types")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
 6. Let's see relationship between satisfaction level, salary, and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=salary, y=satisfaction_level, color=as.factor(left)))+geom_point()
+ggplot(data = hr, aes(x=salary, y=satisfaction_level, color=as.factor(left)))+geom_point()+ggtitle("Satisfaction Level and Income Level")+labs(y="Satisfaction Level", x="Income Level", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
 7. Let's see relationship between satisfaction level, last evaluation and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=last_evaluation, y=satisfaction_level, color=as.factor(left)))+geom_smooth()
+ggplot(data = hr, aes(x=last_evaluation, y=satisfaction_level, color=as.factor(left)))+geom_smooth()+ggtitle("Satisfaction Level and Last Evaluation")+labs(y="Satisfaction Level", x="Last Evaluation", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
 8. Let's see relationship between satisfaction level, number of projects and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=number_project, y=satisfaction_level, color=as.factor(left)))+geom_point()
+ggplot(data = hr, aes(x=number_project, y=satisfaction_level, color=as.factor(left)))+geom_point()+ggtitle("Satisfaction Level and Number of Projects")+labs(y="Satisfaction Level", x="Number of Projects", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
-9. Let's see relationship between satisfaction level, promotion in last 5 years and the people who left their jobs
+9. Let's see relationship between average monthly hours, number of projects and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=left, y=satisfaction_level, color=as.factor(promotion_last_5years)))+geom_point()
+ggplot(data = hr, aes(x=average_montly_hours, y=number_project, color=as.factor(left)))+geom_smooth()+ggtitle("Average Monthly Hours and Number of Projects")+labs(y="Average Monthly Hours", x="Number of Projects", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
-10. Let's see relationship between promotion in last 5 years, number of projects and the peole who left their jobs
+10. Let's see relationship between number of projects, last evaluation and the people who left their jobs
 ```{r}
-ggplot(data = hr, aes(x=promotion_last_5years, y=number_project, color=as.factor(left)))+geom_point() 
+ggplot(data = hr, aes(x=last_evaluation, y=number_project, color=as.factor(left)))+geom_point()+ggtitle("Last Evaluation and Number of Projects")+labs(y="Number of Projects", x="Last Evaluation", colour="Left Organization")+theme(plot.title = element_text(hjust = 0.5))
 ```
 
-This relationship does not tell much, so we can ignore it.
-
-11. Let's see relationship between number of projects, work accidents and the people who left their jobs
-```{r}
-ggplot(data = hr, aes(x=Work_accident, y=number_project, color=as.factor(left)))+geom_point() 
-```
-
-This relationship does not tell much, so we can ignore it.
-
-12. Let's see relationship between number of projects, time spent at company, and the people who left their jobs
-```{r}
-ggplot(data = hr, aes(x=number_project, y=time_spend_company, color=as.factor(left)))+geom_point() 
-```
-
-    
 # Data splitting
 
 ```{r}
@@ -130,7 +111,7 @@ test<-hr[-inTrain,]
 
 # Feature Selection
 
-Start the features analysis with building correlation matrix between variables
+Let's conduct features analysis with building correlation matrix between variables
 
 ```{r}
 # calculate correlation matrix
@@ -143,8 +124,7 @@ highlyCorrelated <- findCorrelation(correlationMatrix, cutoff=0.5)
 print(highlyCorrelated)
 ```
 
-Analyze importance of the variables
-Let's construct Learning Vector Quantization (LVQ) model. The varImp is then used to estimate the variable importance, which is printed and plotted.
+Let's analyze importance of the variables
 
 ```{r}
 # train a model
@@ -173,23 +153,32 @@ plot(results, type=c("g", "o"))
 
 # Train models
 
-```{r, echo=FALSE}
+1.Gradient Boosting Model
+
+```{r}
 set.seed(234)
-# Gradient Boosting Model
 fitControl<-trainControl(method = "repeatedcv", number = 10, repeats = 3)
 fit_1_all<-train(as.factor(left)~., data = train[,!colnames(train) %in% c("EmployeeLabel")], method="gbm", trControl=fitControl, verbose=FALSE)
 fit_1_select<-train(as.factor(left)~satisfaction_level+number_project+time_spend_company+average_montly_hours+last_evaluation, data = train[,!colnames(train) %in% c("EmployeeLabel")], method="gbm", trControl=fitControl, verbose=FALSE)
-# Logistics Regression Model
+```
+
+2. Logistics Regression Model
+
+```{r}
 fit_2_all<-train(as.factor(left)~., data=train[,!colnames(train) %in% c("EmployeeLabel")], method="glm", family="binomial")
 fit_2_select<-train(as.factor(left)~satisfaction_level+number_project+time_spend_company+average_montly_hours+last_evaluation, data=train[,!colnames(train) %in% c("EmployeeLabel")], method="glm", family="binomial")
-# Decision Tree Model
+```
+
+3. Decision Tree Model
+
+```{r}
 fitControl<-trainControl(method = "repeatedcv", number = 10, repeats = 3)
 fit_3<-train(as.factor(left)~satisfaction_level+number_project+time_spend_company+average_montly_hours+last_evaluation, data = train[,!colnames(train) %in% c("EmployeeLabel")], method = "rpart", parms = list(split = "information"), trControl=fitControl, tuneLength = 10)
 ```
 
 # Apply models to the test data set
 
-```{r, echo=FALSE}
+```{r}
 # Model 1
 predict_1_all<-predict(fit_1_all, newdata=test)
 # Model 2
@@ -201,6 +190,7 @@ predict_2_select<-predict(fit_2_select, newdata=test)
 # Model 5
 predict_3<-predict(fit_3, newdata=test)
 ```
+
 # Evaluate predicted results
 
 1. Gradient Boosting Model
@@ -220,6 +210,7 @@ confusionMatrix(predict_2_select, test$left)
 ```
 
 3. Decision Tree Model
+
 ```{r}
 confusionMatrix(predict_3, test$left)
 ```
